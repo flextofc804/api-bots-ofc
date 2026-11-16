@@ -43,6 +43,17 @@ npm install
 npm start          # http://localhost:3000
 ```
 
+### Deploy to Vercel (serverless hosting)
+
+The repo ships with `api/index.js` (serverless adapter) and `vercel.json` (rewrites + static bundling). Storage automatically switches to `/tmp` on serverless.
+
+```bash
+npm i -g vercel
+vercel --prod
+```
+
+Or import the repository at [vercel.com/new](https://vercel.com/new) with zero configuration.
+
 Optional environment variables:
 
 | Variable | Default | Purpose |

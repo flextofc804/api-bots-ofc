@@ -3,13 +3,15 @@
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
+const IS_SERVERLESS = Boolean(process.env.VERCEL);
 
 module.exports = {
   root: ROOT,
+  isServerless: IS_SERVERLESS,
   port: Number(process.env.PORT || 3000),
   host: process.env.HOST || '0.0.0.0',
-  dataDir: process.env.DATA_DIR || path.join(ROOT, 'data'),
-  tmpDir: process.env.TMP_DIR || path.join(ROOT, 'tmp'),
+  dataDir: process.env.DATA_DIR || (IS_SERVERLESS ? '/tmp/data' : path.join(ROOT, 'data')),
+  tmpDir: process.env.TMP_DIR || (IS_SERVERLESS ? '/tmp/tmp' : path.join(ROOT, 'tmp')),
   publicDir: path.join(ROOT, 'public'),
 
   requestTimeoutMs: Number(process.env.REQUEST_TIMEOUT_MS || 20000),
