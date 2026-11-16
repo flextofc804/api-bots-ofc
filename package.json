@@ -1,0 +1,17 @@
+{
+  "name": "mediahub-api",
+  "version": "1.0.0",
+  "description": "Self-hosted media extraction API and admin control panel for TikTok, Instagram and YouTube. 100% local scraping, zero paid API keys.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

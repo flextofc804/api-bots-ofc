@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MediaHub — Admin Control Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            base: '#0b0f17',
+            panel: '#111827',
+            edge: '#1f2937',
+            accent: '#22d3ee',
+            accent2: '#a78bfa'
+          },
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] }
+        }
+      }
+    };
+  </script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    body { background: radial-gradient(1200px 600px at 80% -10%, rgba(34,211,238,.08), transparent), #0b0f17; }
+    .card { background: rgba(17,24,39,.85); border: 1px solid rgba(31,41,55,.9); backdrop-filter: blur(8px); }
+    .glow { box-shadow: 0 0 0 1px rgba(34,211,238,.15), 0 8px 30px rgba(34,211,238,.06); }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 8px; }
+    .pulse-dot { animation: pulse 1.6s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .35 } }
+    .bar { transition: width .6s ease; }
+    .ctrl-btn { display:flex; align-items:center; justify-content:center; gap:.4rem; border-radius:.5rem;
+      border:1px solid rgba(31,41,55,.9); background:rgba(31,41,55,.6); padding:.5rem .6rem;
+      font-size:11px; font-weight:600; color:#e2e8f0; transition:all .15s ease; cursor:pointer; }
+    .ctrl-btn:hover { background:rgba(34,211,238,.12); border-color:rgba(34,211,238,.4); color:#22d3ee; }
+    .ctrl-btn:active { transform: scale(.97); }
+    .ctrl-btn svg { width:13px; height:13px; }
+  </style>
+</head>
+<body class="min-h-screen text-slate-200 font-sans antialiased">
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-40 border-b border-edge/70 bg-base/80 backdrop-blur">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="h-9 w-9 rounded-lg bg-gradient-to-br from-accent to-accent2 grid place-items-center text-slate-900 font-extrabold">M</div>
+        <div>
+          <h1 class="text-sm font-bold tracking-tight text-white leading-none">MediaHub Control Panel</h1>
+          <p class="text-[11px] text-slate-500 mt-0.5">TikTok · Instagram · YouTube — self-hosted extraction</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="maintenance-badge" class="hidden items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30">
+          <i data-lucide="hammer" class="h-3 w-3"></i> MAINTENANCE
+        </span>
+        <span class="flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+          <span id="status-dot" class="h-1.5 w-1.5 rounded-full bg-emerald-400 pulse-dot"></span>
+          <span id="api-status">ONLINE</span>
+        </span>
+        <span class="text-[11px] text-slate-500 hidden sm:block">Uptime <span id="uptime" class="text-slate-300 font-mono">0s</span></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-7xl px-4 sm:px-6 py-6 space-y-6">
+
+    <!-- Metric cards -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="card glow rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Total downloads</p>
+          <i data-lucide="download" class="h-4 w-4 text-accent"></i>
+        </div>
+        <p id="stat-total" class="mt-2 text-2xl font-extrabold text-white font-mono">0</p>
+        <p class="text-[11px] text-slate-500 mt-1">Success rate <span id="stat-success" class="text-emerald-400">100%</span></p>
+      </div>
+      <div class="card glow rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Active jobs</p>
+          <i data-lucide="loader" class="h-4 w-4 text-accent2"></i>
+        </div>
+        <p id="stat-active" class="mt-2 text-2xl font-extrabold text-white font-mono">0</p>
+        <p class="text-[11px] text-slate-500 mt-1">Capacity <span id="stat-capacity" class="text-slate-300">4</span> workers</p>
+      </div>
+      <div class="card glow rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">Storage used</p>
+          <i data-lucide="hard-drive" class="h-4 w-4 text-sky-400"></i>
+        </div>
+        <p id="stat-storage" class="mt-2 text-2xl font-extrabold text-white font-mono">0 B</p>
+        <p class="text-[11px] text-slate-500 mt-1">Bandwidth <span id="stat-bandwidth" class="text-slate-300">0 B</span></p>
+      </div>
+      <div class="card glow rounded-xl p-4">
+        <div class="flex items-center justify-between">
+          <p class="text-[11px] uppercase tracking-wider text-slate-500 font-semibold">CPU load</p>
+          <i data-lucide="cpu" class="h-4 w-4 text-rose-400"></i>
+        </div>
+        <p id="stat-cpu" class="mt-2 text-2xl font-extrabold text-white font-mono">0%</p>
+        <div class="mt-2 h-1.5 rounded-full bg-edge overflow-hidden">
+          <div id="cpu-bar" class="bar h-full rounded-full bg-gradient-to-r from-emerald-400 to-rose-400" style="width:0%"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- System + RAM + engines -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div class="card rounded-xl p-5 lg:col-span-1">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="activity" class="h-4 w-4 text-accent"></i> Live system metrics
+        </h2>
+        <div class="mt-4 space-y-4">
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">RAM usage</span><span id="ram-label" class="font-mono text-slate-300">0%</span></div>
+            <div class="h-2 rounded-full bg-edge overflow-hidden"><div id="ram-bar" class="bar h-full bg-gradient-to-r from-accent to-accent2" style="width:0%"></div></div>
+            <p class="text-[10px] text-slate-500 mt-1 font-mono" id="ram-detail">—</p>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1"><span class="text-slate-400">CPU usage</span><span id="cpu-label" class="font-mono text-slate-300">0%</span></div>
+            <div class="h-2 rounded-full bg-edge overflow-hidden"><div id="cpu-bar2" class="bar h-full bg-gradient-to-r from-emerald-400 to-accent" style="width:0%"></div></div>
+            <p class="text-[10px] text-slate-500 mt-1 font-mono" id="load-detail">load: —</p>
+          </div>
+          <div class="grid grid-cols-3 gap-2 pt-1">
+            <div class="rounded-lg bg-edge/60 p-2 text-center">
+              <p class="text-[10px] text-slate-500">TikTok</p><p id="p-tiktok" class="text-sm font-bold text-white font-mono">0</p>
+            </div>
+            <div class="rounded-lg bg-edge/60 p-2 text-center">
+              <p class="text-[10px] text-slate-500">Instagram</p><p id="p-instagram" class="text-sm font-bold text-white font-mono">0</p>
+            </div>
+            <div class="rounded-lg bg-edge/60 p-2 text-center">
+              <p class="text-[10px] text-slate-500">YouTube</p><p id="p-youtube" class="text-sm font-bold text-white font-mono">0</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card rounded-xl p-5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="wrench" class="h-4 w-4 text-accent2"></i> System controls
+        </h2>
+        <div class="mt-4 grid grid-cols-2 gap-2">
+          <button data-action="clear_cache" class="ctrl-btn"><i data-lucide="eraser"></i> Clear cache</button>
+          <button data-action="toggle_maintenance" class="ctrl-btn"><i data-lucide="hammer"></i> Maintenance</button>
+          <button data-action="restart_workers" class="ctrl-btn"><i data-lucide="refresh-cw"></i> Restart workers</button>
+          <button data-action="purge_logs" class="ctrl-btn"><i data-lucide="trash-2"></i> Purge logs</button>
+          <button data-action="clear_history" class="ctrl-btn col-span-2 text-rose-300 border-rose-500/30 hover:bg-rose-500/10"><i data-lucide="file-x"></i> Clear download history</button>
+        </div>
+        <div class="mt-4 space-y-1.5 text-[11px] font-mono">
+          <p class="flex justify-between"><span class="text-slate-500">yt-dlp engine</span><span id="engine-ytdlp" class="text-slate-300">…</span></p>
+          <p class="flex justify-between"><span class="text-slate-500">ffmpeg</span><span id="engine-ffmpeg" class="text-slate-300">…</span></p>
+          <p class="flex justify-between"><span class="text-slate-500">cache entries</span><span id="engine-cache" class="text-slate-300">0</span></p>
+        </div>
+      </div>
+
+      <div class="card rounded-xl p-5">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="zap" class="h-4 w-4 text-amber-400"></i> Quick extraction test
+        </h2>
+        <div class="mt-4 space-y-2">
+          <input id="test-url" type="text" placeholder="https://www.tiktok.com/@user/video/..."
+            class="w-full rounded-lg bg-edge/70 border border-edge px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-accent" />
+          <div class="flex gap-2">
+            <select id="test-format" class="rounded-lg bg-edge/70 border border-edge px-2 py-2 text-xs text-white focus:outline-none">
+              <option value="video">Video</option><option value="audio">Audio (MP3)</option>
+            </select>
+            <button id="test-run" class="flex-1 rounded-lg bg-accent/90 hover:bg-accent text-slate-900 text-xs font-bold px-3 py-2 flex items-center justify-center gap-1.5">
+              <i data-lucide="play" class="h-3.5 w-3.5"></i> Extract
+            </button>
+          </div>
+          <pre id="test-output" class="hidden mt-2 max-h-44 overflow-auto rounded-lg bg-black/40 border border-edge p-3 text-[10px] leading-relaxed text-emerald-300 font-mono"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Downloads table -->
+    <section class="card rounded-xl overflow-hidden">
+      <div class="p-5 pb-3 flex flex-col sm:flex-row sm:items-center gap-3 justify-between border-b border-edge/70">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="list-video" class="h-4 w-4 text-accent"></i> Download activity
+        </h2>
+        <div class="flex flex-wrap gap-2">
+          <div class="relative">
+            <i data-lucide="search" class="h-3.5 w-3.5 text-slate-600 absolute left-2.5 top-2.5"></i>
+            <input id="search" type="text" placeholder="Search title / URL…"
+              class="pl-8 pr-3 py-1.5 rounded-lg bg-edge/70 border border-edge text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-accent w-56" />
+          </div>
+          <select id="filter-platform" class="rounded-lg bg-edge/70 border border-edge px-2 py-1.5 text-xs text-white focus:outline-none">
+            <option value="all">All platforms</option><option value="tiktok">TikTok</option>
+            <option value="instagram">Instagram</option><option value="youtube">YouTube</option>
+          </select>
+          <select id="filter-status" class="rounded-lg bg-edge/70 border border-edge px-2 py-1.5 text-xs text-white focus:outline-none">
+            <option value="all">All statuses</option><option value="success">Success</option>
+            <option value="failed">Failed</option><option value="processing">Processing</option>
+          </select>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs">
+          <thead class="text-[10px] uppercase tracking-wider text-slate-500 bg-edge/40">
+            <tr>
+              <th class="px-5 py-2.5 font-semibold">Time</th>
+              <th class="px-3 py-2.5 font-semibold">Title</th>
+              <th class="px-3 py-2.5 font-semibold">Platform</th>
+              <th class="px-3 py-2.5 font-semibold">Format</th>
+              <th class="px-3 py-2.5 font-semibold">Engine</th>
+              <th class="px-3 py-2.5 font-semibold">Size</th>
+              <th class="px-3 py-2.5 font-semibold">Status</th>
+              <th class="px-5 py-2.5 font-semibold text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody id="downloads-body" class="divide-y divide-edge/50"></tbody>
+        </table>
+      </div>
+      <div class="px-5 py-3 text-[11px] text-slate-500 border-t border-edge/70 flex justify-between">
+        <span id="dl-count">0 records</span>
+        <span class="font-mono">GET /api/v1/admin/downloads</span>
+      </div>
+    </section>
+
+    <!-- Logs -->
+    <section class="card rounded-xl overflow-hidden">
+      <div class="p-5 pb-3 flex items-center justify-between border-b border-edge/70">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+          <i data-lucide="terminal" class="h-4 w-4 text-emerald-400"></i> System execution logs
+        </h2>
+        <div class="flex gap-2">
+          <select id="log-level" class="rounded-lg bg-edge/70 border border-edge px-2 py-1.5 text-xs text-white focus:outline-none">
+            <option value="all">All levels</option><option value="info">Info+</option>
+            <option value="warn">Warn+</option><option value="error">Errors only</option>
+          </select>
+        </div>
+      </div>
+      <div id="logs-body" class="p-4 space-y-1.5 max-h-80 overflow-y-auto font-mono text-[11px]"></div>
+    </section>
+
+    <footer class="pb-8 pt-2 text-center text-[11px] text-slate-600">
+      MediaHub v1.0 — 100% local scraping engine · no paid API keys · Node.js <span id="node-ver"></span>
+    </footer>
+  </main>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden max-w-xs rounded-xl border border-edge bg-panel px-4 py-3 text-xs shadow-2xl"></div>
+
+  <script src="/app.js"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>
